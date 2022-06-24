@@ -769,7 +769,10 @@ static CDVWKInAppBrowser* instance = nil;
     }else{ // iOS 9
         configuration.mediaPlaybackRequiresUserAction = _browserOptions.mediaplaybackrequiresuseraction;
     }
-    
+
+    if (IsAtLeastiOSVersion(@"14.0")) {
+        configuration.limitsNavigationsToAppBoundDomains = true;
+    }
     
 
     self.webView = [[WKWebView alloc] initWithFrame:webViewBounds configuration:configuration];
