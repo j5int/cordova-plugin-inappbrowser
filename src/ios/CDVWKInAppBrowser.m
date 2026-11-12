@@ -324,7 +324,30 @@ static CDVWKInAppBrowser* instance = nil;
                 if(initHidden && osVersion < 11){
                    frame.origin.x = -10000;
                 }
-                strongSelf->tmpWindow = [[UIWindow alloc] initWithFrame:frame];
+                UIWindowScene *windowScene = strongSelf.viewController.view.window.windowScene;
+                // The main Cordova window's scene reference isn't always available at the time the InAppBrowser
+                // creates its temporary UIWindow. Fallback to iterate through UIApplication.connectedScenes
+                // to get an UIWindowScene.
+                if (!windowScene) {
+                    for (UIScene *connectedScene in [UIApplication sharedApplication].connectedScenes) {
+                        if (connectedScene.activationState == UISceneActivationStateForegroundActive &&
+                            [connectedScene isKindOfClass:[UIWindowScene class]]) {
+                            windowScene = (UIWindowScene *)connectedScene;
+                            break;
+                        }
+                    }
+                }
+                if (windowScene) {
+                    strongSelf->tmpWindow = [[UIWindow alloc] initWithWindowScene:windowScene];
+                }
+
+                // In a scene-based app, this fallback creates a window without
+                // a scene association, so it may still fail to appear if no scene was found.
+                if (!strongSelf->tmpWindow) {
+                    strongSelf->tmpWindow = [[UIWindow alloc] initWithFrame:frame];
+                } else {
+                    strongSelf->tmpWindow.frame = frame;
+                }
             }
             UIViewController *tmpController = [[UIViewController alloc] init];
 
